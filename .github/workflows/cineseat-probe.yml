@@ -1,14 +1,12 @@
-name: Cineseat Public Runner Probe
+name: Cineseat Token Scope Probe
 on:
   push:
     branches: [cineseat-alpha28-build]
-  workflow_dispatch:
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Test fresh private raw URL
-        run: |
+      - run: |
           set -euxo pipefail
-          curl -fL 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/ads.dart?token=ABDH46X7OI5KXLMM5PO72CTKQLFPXAA' -o /tmp/ads.dart
-          grep -q 'class MonetizationController' /tmp/ads.dart
+          curl -fL 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/models.dart?token=ABDH46QMELMGJCO6CEWDZH3KQLGE5AA' -o /tmp/models.dart
+          grep -q 'class WatchItem' /tmp/models.dart
