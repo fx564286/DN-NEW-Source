@@ -16,9 +16,10 @@ jobs:
         run: |
           set -euo pipefail
           BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-          mkdir -p out/lib
+          mkdir -p out/lib out/lib64
           cp "$BT/apksigner" "$BT/zipalign" "$BT/aapt2" out/
           cp "$BT/lib/apksigner.jar" out/lib/
+          cp "$BT/lib64/libc++.so" out/lib64/
           chmod +x out/apksigner out/zipalign out/aapt2
           echo "$BT" > out/source.txt
       - uses: actions/upload-artifact@v4
