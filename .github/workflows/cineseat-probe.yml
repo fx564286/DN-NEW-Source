@@ -1,17 +1,14 @@
 name: Cineseat Public Runner Probe
 on:
   push:
-    branches: [master]
+    branches: [cineseat-alpha28-build]
   workflow_dispatch:
-permissions:
-  contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Test private repo access
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Test raw signed token scope
         run: |
           set -euxo pipefail
-          git ls-remote "https://x-access-token:${GH_TOKEN}@github.com/fx564286/-.git" HEAD
+          curl -fL 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/models.dart?token=ABDH46RGAEBEV3EHYL3TJVTKQLE33AA' -o /tmp/models.dart
+          grep -q 'class WatchItem' /tmp/models.dart
