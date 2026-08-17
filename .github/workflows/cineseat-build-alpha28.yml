@@ -16,7 +16,61 @@ jobs:
       APP_VERSION_CODE: '48'
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Restore private Cineseat build payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cinema_alpha_payload
+          mkdir -p cinema_alpha_payload/lib cinema_alpha_payload/android cinema_alpha_payload/ci
+          get(){ echo "fetch $(basename "$2")"; curl --retry 2 --retry-delay 1 -fsSL "$1" -o "$2"; }
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/ads.dart?token=ABDH46X7OI5KXLMM5PO72CTKQLFPXAA' cinema_alpha_payload/lib/ads.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/app_controller.dart?token=ABDH46SSVXMDUASRP2ALTGDKQLFPXAA' cinema_alpha_payload/lib/app_controller.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/background_monitor.dart?token=ABDH46RLW6HWPPCOCRPMOCLKQLFPXAA' cinema_alpha_payload/lib/background_monitor.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/cgv_seat_bridge.dart?token=ABDH46W5PJYSDHC4LUH2LBTKQLFPXAA' cinema_alpha_payload/lib/cgv_seat_bridge.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home.dart?token=ABDH46WVJXJB7KOYEG7CR4LKQLFPXAA' cinema_alpha_payload/lib/home.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v2.dart?token=ABDH46RKETPMMBVETJYUADDKQLFPXAA' cinema_alpha_payload/lib/home_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v3.dart?token=ABDH46XOXJ5ZLNVZPEAJ2I3KQLFPXAA' cinema_alpha_payload/lib/home_v3.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/main.dart?token=ABDH46VCVFIHR34JEBQ7UCDKQLFPXAA' cinema_alpha_payload/lib/main.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/models.dart?token=ABDH46U2IOPWCFV7A6DFF3DKQLFPXAA' cinema_alpha_payload/lib/models.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/official_seat_web.dart?token=ABDH46UTV6PYWCFVQJYSI5DKQLFPXAA' cinema_alpha_payload/lib/official_seat_web.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/runtime_status_card.dart?token=ABDH46R5EGSQII6JF34ESR3KQLFPXAA' cinema_alpha_payload/lib/runtime_status_card.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/services.dart?token=ABDH46X4ISKPRBTYOJRHHNTKQLFPXAA' cinema_alpha_payload/lib/services.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/settings_v2.dart?token=ABDH46XIG5PABM7WRUATRQ3KQLFPXAA' cinema_alpha_payload/lib/settings_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/shared_widgets.dart?token=ABDH46RQVWVHMJFIML5HPZDKQLFPXAA' cinema_alpha_payload/lib/shared_widgets.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard.dart?token=ABDH46RUKXBULWKHJHPXBJTKQLFPXAA' cinema_alpha_payload/lib/wizard.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v2.dart?token=ABDH46ULTBA7KU3CP7FT6LLKQLFPXAA' cinema_alpha_payload/lib/wizard_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v4.dart?token=ABDH46S4IQLU5MEQ6E4GRULKQLFPXAA' cinema_alpha_payload/lib/wizard_v4.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/BootReceiver.kt?token=ABDH46R6W5SUSWAXZQTQNW3KQLFSZAA' cinema_alpha_payload/android/BootReceiver.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/MainActivity.kt?token=ABDH46WFK4LBLTFHM5MYRQLKQLFSZAA' cinema_alpha_payload/android/MainActivity.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/SeatMonitorService.kt?token=ABDH46X74WB2JFXLIA67DRTKQLFSZAA' cinema_alpha_payload/android/SeatMonitorService.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/app_icon.png.b64?token=ABDH46UMW4JHQXYVEU2PL53KQLFSJAA' cinema_alpha_payload/app_icon.png.b64
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/build_patch_v2.py?token=ABDH46WZVRILDNRUBAL4N4TKQLFSJAA' cinema_alpha_payload/build_patch_v2.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/fix_kotlin_interpolation.py?token=ABDH46S5I7U4X3EMY3R2VX3KQLFSJAA' cinema_alpha_payload/fix_kotlin_interpolation.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/sitecustomize.py?token=ABDH46TVFMZTM5WLHGC4JQTKQLFSJAA' cinema_alpha_payload/sitecustomize.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha8_restore.py?token=ABDH46VWU2QJNPNA5OEEMT3KQLFSJAA' cinema_alpha_payload/apply_alpha8_restore.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha9_contrast.py?token=ABDH46TPMW6OPULKD6QFHIDKQLFSJAA' cinema_alpha_payload/apply_alpha9_contrast.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py?token=ABDH46T2Y7TECDUHQATHNULKQLFSJAA' cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha11_schedule_match.py?token=ABDH46SX6MHU3L77O3JKEHTKQLFSJAA' cinema_alpha_payload/apply_alpha11_schedule_match.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha12_login_gated_seats.py?token=ABDH46RD3DOWZPXZQAUWOYTKQLFSJAA' cinema_alpha_payload/apply_alpha12_login_gated_seats.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha14_official_seat_web.py?token=ABDH46QKCG3INDP6B2NSGULKQLFSJAA' cinema_alpha_payload/apply_alpha14_official_seat_web.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha15_cgv_exact_api.py?token=ABDH46S2T5FFLSOWPBK435TKQLFSJAA' cinema_alpha_payload/apply_alpha15_cgv_exact_api.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha16_all_exact_no_login.py?token=ABDH46WB5Z6KZQA6RDPOX7LKQLFSJAA' cinema_alpha_payload/apply_alpha16_all_exact_no_login.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py?token=ABDH46TL2Y3EUZZ2YC2X5C3KQLFSJAA' cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha18_navigation_edit_region.py?token=ABDH46WAJG5X2WU6IQC3DU3KQLFSJAA' cinema_alpha_payload/apply_alpha18_navigation_edit_region.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_runtime_regression.py?token=ABDH46V4X6TKCXD3BD6WSC3KQLFSJAA' cinema_alpha_payload/apply_alpha19_runtime_regression.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_material_runtime_fix.py?token=ABDH46TUPLG6YKD5R5L5O43KQLFSJAA' cinema_alpha_payload/apply_alpha19_material_runtime_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha21_region_watch_rollback.py?token=ABDH46UC4KKE3UMC4YHPQ3DKQLFSJAA' cinema_alpha_payload/apply_alpha21_region_watch_rollback.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_region_cgv_flow.py?token=ABDH46RDEZXB6AUJVTLZK6DKQLFSJAA' cinema_alpha_payload/apply_alpha26_region_cgv_flow.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_compile_fix.py?token=ABDH46RMGMW4KGUVIYY5IYLKQLFSJAA' cinema_alpha_payload/apply_alpha26_compile_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py?token=ABDH46VYKRY6Z3V3SC7H2HDKQLFSJAA' cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_compile_fix.py?token=ABDH46QBLRIXZYDS2W7Z4MLKQLFSJAA' cinema_alpha_payload/apply_alpha27_compile_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py?token=ABDH46U6FXIRUOHVBY5B2G3KQLFSJAA' cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha26.sh?token=ABDH46XLBNX7BLBDN6ERK7TKQLFTDAA' cinema_alpha_payload/ci/build_alpha26.sh
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha27.sh?token=ABDH46U2NEGDNGBGHMAIARLKQLFTDAA' cinema_alpha_payload/ci/build_alpha27.sh
+          chmod +x cinema_alpha_payload/ci/*.sh
+          test -s cinema_alpha_payload/lib/wizard_v4.dart
+          test -s cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -25,58 +79,6 @@ jobs:
           flutter-version: '3.44.6'
           channel: stable
           cache: true
-      - name: Restore private Cineseat build payload
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf cinema_alpha_payload
-          mkdir -p cinema_alpha_payload/lib cinema_alpha_payload/android cinema_alpha_payload/ci
-          get(){ curl --retry 3 --retry-delay 1 -fsSL "$1" -o "$2"; }
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/ads.dart?token=ABDH46RGAEBEV3EHYL3TJVTKQLE33AA' cinema_alpha_payload/lib/ads.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/app_controller.dart?token=ABDH46RRII6SYBZWNBKCAQ3KQLE33AA' cinema_alpha_payload/lib/app_controller.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/background_monitor.dart?token=ABDH46RZ7MRAYF5WRPDET2TKQLE33AA' cinema_alpha_payload/lib/background_monitor.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/cgv_seat_bridge.dart?token=ABDH46TRWZ4OESB77T7FWMDKQLE33AA' cinema_alpha_payload/lib/cgv_seat_bridge.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home.dart?token=ABDH46VSZN3ED46KLDH2XPLKQLE33AA' cinema_alpha_payload/lib/home.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v2.dart?token=ABDH46R23CIRJG6F7SKNAL3KQLE33AA' cinema_alpha_payload/lib/home_v2.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v3.dart?token=ABDH46QANOX36PUHLJREC23KQLE33AA' cinema_alpha_payload/lib/home_v3.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/main.dart?token=ABDH46RSFUYS3PWUXF5ZFK3KQLE33AA' cinema_alpha_payload/lib/main.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/models.dart?token=ABDH46QA2BMK2VGBEKNYCYLKQLE33AA' cinema_alpha_payload/lib/models.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/official_seat_web.dart?token=ABDH46QOKP6BN2K6HBOKPSDKQLE33AA' cinema_alpha_payload/lib/official_seat_web.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/runtime_status_card.dart?token=ABDH46TYTR5NZFOODL6V2VTKQLE33AA' cinema_alpha_payload/lib/runtime_status_card.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/services.dart?token=ABDH46XLNV2VULYNRTVQKSTKQLE33AA' cinema_alpha_payload/lib/services.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/settings_v2.dart?token=ABDH46W77VPUBIQS6VUPM43KQLE33AA' cinema_alpha_payload/lib/settings_v2.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/shared_widgets.dart?token=ABDH46SBHOOKT5OKSOJNEPTKQLE33AA' cinema_alpha_payload/lib/shared_widgets.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard.dart?token=ABDH46R6PQIOIZC3COK43A3KQLE33AA' cinema_alpha_payload/lib/wizard.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v2.dart?token=ABDH46XV65NCBD7DBHZGIK3KQLE33AA' cinema_alpha_payload/lib/wizard_v2.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v4.dart?token=ABDH46VJYKE6QGAHCCBL6M3KQLE33AA' cinema_alpha_payload/lib/wizard_v4.dart
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/BootReceiver.kt?token=ABDH46VF6GXEYS7VILNYHQTKQLFAVAA' cinema_alpha_payload/android/BootReceiver.kt
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/MainActivity.kt?token=ABDH46UFBI772Y6ZQJ2T5DDKQLFAVAA' cinema_alpha_payload/android/MainActivity.kt
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/SeatMonitorService.kt?token=ABDH46UFOIBAA7D3277TFYTKQLFAVAA' cinema_alpha_payload/android/SeatMonitorService.kt
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/app_icon.png.b64?token=ABDH46WOWBC7LTO52F67ZQ3KQLE4JAA' cinema_alpha_payload/app_icon.png.b64
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/build_patch_v2.py?token=ABDH46X7GHJQNIDTCRW4TLTKQLE4JAA' cinema_alpha_payload/build_patch_v2.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/fix_kotlin_interpolation.py?token=ABDH46TZUF2SPIYWWPUR7ODKQLE4JAA' cinema_alpha_payload/fix_kotlin_interpolation.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/sitecustomize.py?token=ABDH46WRX6BLRIPAHTFKVFLKQLE4JAA' cinema_alpha_payload/sitecustomize.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha8_restore.py?token=ABDH46U5OW4XTZO2BM3HFSLKQLE4JAA' cinema_alpha_payload/apply_alpha8_restore.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha9_contrast.py?token=ABDH46Q4E6QPSZWSDZQLLD3KQLE4JAA' cinema_alpha_payload/apply_alpha9_contrast.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py?token=ABDH46RWQJABJHFAM4O3M2TKQLE4JAA' cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha11_schedule_match.py?token=ABDH46TU6BORMDIGVYRGT6LKQLE4JAA' cinema_alpha_payload/apply_alpha11_schedule_match.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha12_login_gated_seats.py?token=ABDH46UXA4WQ3BFAFEVQQODKQLE4JAA' cinema_alpha_payload/apply_alpha12_login_gated_seats.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha14_official_seat_web.py?token=ABDH46Q4ZAC2LY32GCHW6OLKQLE4JAA' cinema_alpha_payload/apply_alpha14_official_seat_web.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha15_cgv_exact_api.py?token=ABDH46W25YGDRSHBQWIHKG3KQLE4JAA' cinema_alpha_payload/apply_alpha15_cgv_exact_api.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha16_all_exact_no_login.py?token=ABDH46U5N7XTCTJS36PVMPLKQLE4JAA' cinema_alpha_payload/apply_alpha16_all_exact_no_login.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py?token=ABDH46WTXQDZ2NXARCRH34TKQLE4JAA' cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha18_navigation_edit_region.py?token=ABDH46V2HRKW66VF5WELJNLKQLE4JAA' cinema_alpha_payload/apply_alpha18_navigation_edit_region.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_runtime_regression.py?token=ABDH46RPQQQWYBJVDLP5Q73KQLE4JAA' cinema_alpha_payload/apply_alpha19_runtime_regression.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_material_runtime_fix.py?token=ABDH46VPHZBDCNULHAUWML3KQLE4JAA' cinema_alpha_payload/apply_alpha19_material_runtime_fix.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha21_region_watch_rollback.py?token=ABDH46WDAL7MQVLXDAMVQN3KQLE4JAA' cinema_alpha_payload/apply_alpha21_region_watch_rollback.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_region_cgv_flow.py?token=ABDH46U6KUVNTKFUZOBESALKQLE4JAA' cinema_alpha_payload/apply_alpha26_region_cgv_flow.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_compile_fix.py?token=ABDH46XL3CDXULAT42JTLK3KQLE4JAA' cinema_alpha_payload/apply_alpha26_compile_fix.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py?token=ABDH46SRFLFQZMMRYZ5E5L3KQLE4JAA' cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_compile_fix.py?token=ABDH46REIAI7VFBWKI7FT3TKQLE4JAA' cinema_alpha_payload/apply_alpha27_compile_fix.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py?token=ABDH46Q23URWBVQ62LWORUTKQLE4JAA' cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha26.sh?token=ABDH46XJQ7C6FLWNOUMJ7NLKQLFA5AA' cinema_alpha_payload/ci/build_alpha26.sh
-          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha27.sh?token=ABDH46QFYM7SVF3FMM2S2BLKQLFA5AA' cinema_alpha_payload/ci/build_alpha27.sh
-          chmod +x cinema_alpha_payload/ci/*.sh
       - name: Prepare project
         run: bash cinema_alpha_payload/ci/build_alpha27.sh prepare
       - name: Build and verify APK
