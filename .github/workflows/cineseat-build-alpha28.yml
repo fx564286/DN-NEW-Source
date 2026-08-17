@@ -1,0 +1,90 @@
+name: Build Cineseat Alpha28 APK
+on:
+  push:
+    branches: [cineseat-alpha28-build]
+    paths:
+      - '.github/workflows/cineseat-build-alpha28.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_VERSION_NAME: 0.2.1-alpha.28
+      APP_VERSION_CODE: '48'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+      - name: Restore private Cineseat build payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cinema_alpha_payload
+          mkdir -p cinema_alpha_payload/lib cinema_alpha_payload/android cinema_alpha_payload/ci
+          get(){ curl --retry 3 --retry-delay 1 -fsSL "$1" -o "$2"; }
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/ads.dart?token=ABDH46RGAEBEV3EHYL3TJVTKQLE33AA' cinema_alpha_payload/lib/ads.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/app_controller.dart?token=ABDH46RRII6SYBZWNBKCAQ3KQLE33AA' cinema_alpha_payload/lib/app_controller.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/background_monitor.dart?token=ABDH46RZ7MRAYF5WRPDET2TKQLE33AA' cinema_alpha_payload/lib/background_monitor.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/cgv_seat_bridge.dart?token=ABDH46TRWZ4OESB77T7FWMDKQLE33AA' cinema_alpha_payload/lib/cgv_seat_bridge.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home.dart?token=ABDH46VSZN3ED46KLDH2XPLKQLE33AA' cinema_alpha_payload/lib/home.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v2.dart?token=ABDH46R23CIRJG6F7SKNAL3KQLE33AA' cinema_alpha_payload/lib/home_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/home_v3.dart?token=ABDH46QANOX36PUHLJREC23KQLE33AA' cinema_alpha_payload/lib/home_v3.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/main.dart?token=ABDH46RSFUYS3PWUXF5ZFK3KQLE33AA' cinema_alpha_payload/lib/main.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/models.dart?token=ABDH46QA2BMK2VGBEKNYCYLKQLE33AA' cinema_alpha_payload/lib/models.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/official_seat_web.dart?token=ABDH46QOKP6BN2K6HBOKPSDKQLE33AA' cinema_alpha_payload/lib/official_seat_web.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/runtime_status_card.dart?token=ABDH46TYTR5NZFOODL6V2VTKQLE33AA' cinema_alpha_payload/lib/runtime_status_card.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/services.dart?token=ABDH46XLNV2VULYNRTVQKSTKQLE33AA' cinema_alpha_payload/lib/services.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/settings_v2.dart?token=ABDH46W77VPUBIQS6VUPM43KQLE33AA' cinema_alpha_payload/lib/settings_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/shared_widgets.dart?token=ABDH46SBHOOKT5OKSOJNEPTKQLE33AA' cinema_alpha_payload/lib/shared_widgets.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard.dart?token=ABDH46R6PQIOIZC3COK43A3KQLE33AA' cinema_alpha_payload/lib/wizard.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v2.dart?token=ABDH46XV65NCBD7DBHZGIK3KQLE33AA' cinema_alpha_payload/lib/wizard_v2.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/lib/wizard_v4.dart?token=ABDH46VJYKE6QGAHCCBL6M3KQLE33AA' cinema_alpha_payload/lib/wizard_v4.dart
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/BootReceiver.kt?token=ABDH46VF6GXEYS7VILNYHQTKQLFAVAA' cinema_alpha_payload/android/BootReceiver.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/MainActivity.kt?token=ABDH46UFBI772Y6ZQJ2T5DDKQLFAVAA' cinema_alpha_payload/android/MainActivity.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/android/SeatMonitorService.kt?token=ABDH46UFOIBAA7D3277TFYTKQLFAVAA' cinema_alpha_payload/android/SeatMonitorService.kt
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/app_icon.png.b64?token=ABDH46WOWBC7LTO52F67ZQ3KQLE4JAA' cinema_alpha_payload/app_icon.png.b64
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/build_patch_v2.py?token=ABDH46X7GHJQNIDTCRW4TLTKQLE4JAA' cinema_alpha_payload/build_patch_v2.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/fix_kotlin_interpolation.py?token=ABDH46TZUF2SPIYWWPUR7ODKQLE4JAA' cinema_alpha_payload/fix_kotlin_interpolation.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/sitecustomize.py?token=ABDH46WRX6BLRIPAHTFKVFLKQLE4JAA' cinema_alpha_payload/sitecustomize.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha8_restore.py?token=ABDH46U5OW4XTZO2BM3HFSLKQLE4JAA' cinema_alpha_payload/apply_alpha8_restore.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha9_contrast.py?token=ABDH46Q4E6QPSZWSDZQLLD3KQLE4JAA' cinema_alpha_payload/apply_alpha9_contrast.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py?token=ABDH46RWQJABJHFAM4O3M2TKQLE4JAA' cinema_alpha_payload/apply_alpha10_watch_edit_semantics.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha11_schedule_match.py?token=ABDH46TU6BORMDIGVYRGT6LKQLE4JAA' cinema_alpha_payload/apply_alpha11_schedule_match.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha12_login_gated_seats.py?token=ABDH46UXA4WQ3BFAFEVQQODKQLE4JAA' cinema_alpha_payload/apply_alpha12_login_gated_seats.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha14_official_seat_web.py?token=ABDH46Q4ZAC2LY32GCHW6OLKQLE4JAA' cinema_alpha_payload/apply_alpha14_official_seat_web.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha15_cgv_exact_api.py?token=ABDH46W25YGDRSHBQWIHKG3KQLE4JAA' cinema_alpha_payload/apply_alpha15_cgv_exact_api.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha16_all_exact_no_login.py?token=ABDH46U5N7XTCTJS36PVMPLKQLE4JAA' cinema_alpha_payload/apply_alpha16_all_exact_no_login.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py?token=ABDH46WTXQDZ2NXARCRH34TKQLE4JAA' cinema_alpha_payload/apply_alpha17_expiry_layout_diagnostics.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha18_navigation_edit_region.py?token=ABDH46V2HRKW66VF5WELJNLKQLE4JAA' cinema_alpha_payload/apply_alpha18_navigation_edit_region.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_runtime_regression.py?token=ABDH46RPQQQWYBJVDLP5Q73KQLE4JAA' cinema_alpha_payload/apply_alpha19_runtime_regression.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha19_material_runtime_fix.py?token=ABDH46VPHZBDCNULHAUWML3KQLE4JAA' cinema_alpha_payload/apply_alpha19_material_runtime_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha21_region_watch_rollback.py?token=ABDH46WDAL7MQVLXDAMVQN3KQLE4JAA' cinema_alpha_payload/apply_alpha21_region_watch_rollback.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_region_cgv_flow.py?token=ABDH46U6KUVNTKFUZOBESALKQLE4JAA' cinema_alpha_payload/apply_alpha26_region_cgv_flow.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha26_compile_fix.py?token=ABDH46XL3CDXULAT42JTLK3KQLE4JAA' cinema_alpha_payload/apply_alpha26_compile_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py?token=ABDH46SRFLFQZMMRYZ5E5L3KQLE4JAA' cinema_alpha_payload/apply_alpha27_expiry_cgv_guest.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha27_compile_fix.py?token=ABDH46REIAI7VFBWKI7FT3TKQLE4JAA' cinema_alpha_payload/apply_alpha27_compile_fix.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py?token=ABDH46Q23URWBVQ62LWORUTKQLE4JAA' cinema_alpha_payload/apply_alpha28_cgv_silent_webview.py
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha26.sh?token=ABDH46XJQ7C6FLWNOUMJ7NLKQLFA5AA' cinema_alpha_payload/ci/build_alpha26.sh
+          get 'https://raw.githubusercontent.com/fx564286/-/main/cinema_alpha_payload/ci/build_alpha27.sh?token=ABDH46QFYM7SVF3FMM2S2BLKQLFA5AA' cinema_alpha_payload/ci/build_alpha27.sh
+          chmod +x cinema_alpha_payload/ci/*.sh
+      - name: Prepare project
+        run: bash cinema_alpha_payload/ci/build_alpha27.sh prepare
+      - name: Build and verify APK
+        run: bash cinema_alpha_payload/ci/build_alpha27.sh build
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: cineseat-alpha28-silent-cgv
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
