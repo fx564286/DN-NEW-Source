@@ -1,0 +1,10 @@
+name: Cineseat Public Runner Probe
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo public-runner-ok
