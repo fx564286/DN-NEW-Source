@@ -3,8 +3,15 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: echo public-runner-ok
+      - name: Test private repo access
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euxo pipefail
+          git ls-remote "https://x-access-token:${GH_TOKEN}@github.com/fx564286/-.git" HEAD
