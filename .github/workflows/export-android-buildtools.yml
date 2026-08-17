@@ -1,0 +1,28 @@
+name: Export Android Build Tools
+on:
+  push:
+    branches: [cineseat-alpha28-build]
+    paths: ['.github/workflows/export-android-buildtools.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pack build tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          mkdir -p out/lib
+          cp "$BT/apksigner" "$BT/zipalign" "$BT/aapt2" out/
+          cp "$BT/lib/apksigner.jar" out/lib/
+          chmod +x out/apksigner out/zipalign out/aapt2
+          echo "$BT" > out/source.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-build-tools-local
+          path: out/**
+          retention-days: 7
