@@ -10,46 +10,117 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect Megabox seat page scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Resolve a live Megabox showtime
         shell: bash
         run: |
           set -euo pipefail
-          UA='Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/134 Mobile Safari/537.36'
-          BASE='https://www.megabox.co.kr'
-          PAGE='/on/oh/ohz/PcntSeatChoi/selectPcntSeatChoi.do'
-          mkdir -p /tmp/mbx
-          curl -LfsS -A "$UA" "$BASE$PAGE" -o /tmp/mbx/page.html
-          echo '=== inline endpoint matches ==='
-          grep -n -C 8 -E 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' /tmp/mbx/page.html | head -n 600 || true
-          echo '=== scripts ==='
+          DATE="$(TZ=Asia/Seoul date +%Y%m%d)"
+          curl -fsS --get \
+            --data-urlencode "keyword=코엑스" \
+            --data-urlencode "playDate=$DATE" \
+            'https://mcp.aka.page/api/megabox/movies' -o /tmp/megabox-movies.json
           python3 - <<'PY'
-          import html, re
-          from pathlib import Path
-          text=Path('/tmp/mbx/page.html').read_text(errors='ignore')
-          srcs=[]
-          for x in re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I):
-              x=html.unescape(x)
-              if x not in srcs: srcs.append(x)
-          Path('/tmp/mbx/scripts.txt').write_text('\n'.join(srcs))
-          print('\n'.join(srcs))
+          import json, os
+          data=json.load(open('/tmp/megabox-movies.json', encoding='utf-8'))
+          found=[]
+          def walk(x):
+            if isinstance(x, dict):
+              if x.get('scheduleId'):
+                found.append(x)
+              for v in x.values(): walk(v)
+            elif isinstance(x, list):
+              for v in x: walk(v)
+          walk(data)
+          print('showtimes=', len(found))
+          if not found:
+            print(json.dumps(data, ensure_ascii=False)[:5000])
+            raise SystemExit('no live Megabox showtime')
+          s=found[0]
+          for k in ('scheduleId','theaterId','movieId','playDate','startTime','screenId','screenName'):
+            print(k, '=', s.get(k))
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+            f.write('MB_SCHEDULE_ID='+str(s.get('scheduleId',''))+'\n')
+            f.write('MB_THEATER_ID='+str(s.get('theaterId',''))+'\n')
+            f.write('MB_MOVIE_ID='+str(s.get('movieId',''))+'\n')
+            f.write('MB_PLAY_DATE='+str(s.get('playDate',''))+'\n')
           PY
-          i=0
-          while IFS= read -r src; do
-            [ -z "$src" ] && continue
-            case "$src" in
-              http*) url="$src" ;;
-              //*) url="https:$src" ;;
-              /*) url="$BASE$src" ;;
-              *) url="$BASE/$(dirname "$PAGE")/$src" ;;
-            esac
-            out="/tmp/mbx/js-$i.js"
-            curl -LfsS -A "$UA" "$url" -o "$out" || true
-            if grep -qE 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' "$out" 2>/dev/null; then
-              echo "=== MATCH $url ==="
-              grep -n -C 12 -E 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' "$out" | head -n 1200 || true
-            fi
-            i=$((i+1))
-          done < /tmp/mbx/scripts.txt
+      - name: Probe seat endpoint inside browser session
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/probe.js <<'JS'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({
+              locale:'ko-KR', timezoneId:'Asia/Seoul',
+              userAgent:'Mozilla/5.0 (Linux; Android 16; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36',
+              viewport:{width:412,height:915}
+            });
+            const page=await context.newPage();
+            page.on('request', req=>{
+              if(req.url().includes('selectSeatList.do')){
+                console.log('CAPTURE_REQUEST', req.method(), req.url(), req.postData());
+              }
+            });
+            page.on('response', async res=>{
+              if(res.url().includes('selectSeatList.do')){
+                let body=''; try{body=await res.text();}catch(e){}
+                console.log('CAPTURE_RESPONSE', res.status(), body.slice(0,12000));
+              }
+            });
+            const schedule=process.env.MB_SCHEDULE_ID;
+            const theater=process.env.MB_THEATER_ID;
+            const movie=process.env.MB_MOVIE_ID;
+            const playDate=process.env.MB_PLAY_DATE;
+            console.log({schedule,theater,movie,playDate});
+            const nav=await page.goto('https://www.megabox.co.kr/booking', {waitUntil:'domcontentloaded', timeout:60000});
+            console.log('booking status', nav && nav.status(), 'url', page.url());
+            await page.waitForTimeout(5000);
+            console.log('cookies', (await context.cookies()).map(c=>c.name).join(','));
+            const endpoint='https://www.megabox.co.kr/on/oh/ohz/PcntSeatChoi/selectSeatList.do';
+            const variants=[
+              {kind:'form', data:{playSchdlNo:schedule}},
+              {kind:'form', data:{playSchdlNo:schedule,brchNo:theater}},
+              {kind:'form', data:{playSchdlNo:schedule,brchNo:theater,movieNo:movie,playDe:playDate,bokdCnt:'1',sellChnlCd:'ONLINE'}},
+              {kind:'json', data:{playSchdlNo:schedule}},
+              {kind:'json', data:{playSchdlNo:schedule,brchNo:theater,bokdCnt:1}}
+            ];
+            for(const v of variants){
+              const opts={headers:{'Accept':'application/json, text/javascript, */*; q=0.01','X-Requested-With':'XMLHttpRequest','Referer':'https://www.megabox.co.kr/booking'}};
+              if(v.kind==='form') opts.form=v.data; else opts.data=v.data;
+              try{
+                const r=await context.request.post(endpoint, opts);
+                const text=await r.text();
+                console.log('TRY',v.kind,JSON.stringify(v.data),'STATUS',r.status(),'BODY',text.slice(0,16000));
+              }catch(e){console.log('TRY_ERROR',v.kind,JSON.stringify(v.data),String(e));}
+            }
+            // Submit the seat page itself with likely booking context so its own JS can reveal the canonical request.
+            try{
+              await page.setContent(`<form id="f" method="post" action="https://www.megabox.co.kr/on/oh/ohz/PcntSeatChoi/selectPcntSeatChoi.do">
+                <input name="playSchdlNo" value="${schedule}">
+                <input name="brchNo" value="${theater}">
+                <input name="movieNo" value="${movie}">
+                <input name="playDe" value="${playDate}">
+                <input name="bokdCnt" value="1">
+                <input name="sellChnlCd" value="ONLINE">
+              </form><script>document.getElementById('f').submit()</script>`);
+              await page.waitForTimeout(8000);
+              console.log('seat page url', page.url());
+              console.log('seat page text', (await page.locator('body').innerText()).slice(0,5000));
+              console.log('seat page html markers', (await page.content()).match(/selectSeatList|playSchdlNo|seatListSD01/g)?.slice(0,50));
+            }catch(e){console.log('SEAT_PAGE_ERROR',String(e));}
+            await browser.close();
+          })().catch(e=>{console.error(e); process.exit(1)});
+          JS
+          node /tmp/probe.js
