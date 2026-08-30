@@ -1,0 +1,55 @@
+name: Probe Megabox Seat Flow
+on:
+  push:
+    branches: [cineseat-alpha28-build]
+    paths:
+      - '.github/workflows/megabox-seat-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect Megabox seat page scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          UA='Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 Chrome/134 Mobile Safari/537.36'
+          BASE='https://www.megabox.co.kr'
+          PAGE='/on/oh/ohz/PcntSeatChoi/selectPcntSeatChoi.do'
+          mkdir -p /tmp/mbx
+          curl -LfsS -A "$UA" "$BASE$PAGE" -o /tmp/mbx/page.html
+          echo '=== inline endpoint matches ==='
+          grep -n -C 8 -E 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' /tmp/mbx/page.html | head -n 600 || true
+          echo '=== scripts ==='
+          python3 - <<'PY'
+          import html, re
+          from pathlib import Path
+          text=Path('/tmp/mbx/page.html').read_text(errors='ignore')
+          srcs=[]
+          for x in re.findall(r'<script[^>]+src=["\']([^"\']+)', text, re.I):
+              x=html.unescape(x)
+              if x not in srcs: srcs.append(x)
+          Path('/tmp/mbx/scripts.txt').write_text('\n'.join(srcs))
+          print('\n'.join(srcs))
+          PY
+          i=0
+          while IFS= read -r src; do
+            [ -z "$src" ] && continue
+            case "$src" in
+              http*) url="$src" ;;
+              //*) url="https:$src" ;;
+              /*) url="$BASE$src" ;;
+              *) url="$BASE/$(dirname "$PAGE")/$src" ;;
+            esac
+            out="/tmp/mbx/js-$i.js"
+            curl -LfsS -A "$UA" "$url" -o "$out" || true
+            if grep -qE 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' "$out" 2>/dev/null; then
+              echo "=== MATCH $url ==="
+              grep -n -C 12 -E 'selectSeatList|seatListSD01|playSchdlNo|seatUniqNo' "$out" | head -n 1200 || true
+            fi
+            i=$((i+1))
+          done < /tmp/mbx/scripts.txt
