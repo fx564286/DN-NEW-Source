@@ -1,0 +1,74 @@
+name: Build Cineseat Mature Alpha120 APK
+on:
+  push:
+    branches: [cineseat-alpha28-build]
+    paths:
+      - '.github/workflows/cineseat-mature-alpha120.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      APP_VERSION_NAME: 0.2.1-alpha.120
+      APP_VERSION_CODE: '120'
+    steps:
+      - name: Checkout mature Cineseat source
+        uses: actions/checkout@v4
+        with:
+          repository: fx564286/-
+          ref: main
+          path: source
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+      - name: Prepare mature Android project
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x cinema_alpha_payload/ci/build_alpha26.sh cinema_alpha_payload/ci/build_alpha27.sh
+          bash cinema_alpha_payload/ci/build_alpha27.sh prepare
+      - name: Build and verify mature alpha120 APK
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash cinema_alpha_payload/ci/build_alpha27.sh build
+      - name: Verify expected mature feature markers
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'PageRouteBuilder<CgvSeatImportResult>' build_app/lib/wizard_v4.dart
+          grep -q 'type: MaterialType.transparency' build_app/lib/official_seat_web.dart
+          grep -q 'SeatMonitorService' android_manifest.xml 2>/dev/null || true
+          test -s dist/Cineseat_0.2.1-alpha.120.apk || test -n "$(find dist -maxdepth 1 -name '*.apk' -print -quit)"
+          ls -lh dist
+      - name: Normalize APK filename
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find dist -maxdepth 1 -type f -name '*.apk' | head -1)"
+          test -n "$APK"
+          cp "$APK" dist/Cineseat_0.2.1-alpha120_MATURE_CGV_SEAMLESS.apk
+          sha256sum dist/Cineseat_0.2.1-alpha120_MATURE_CGV_SEAMLESS.apk > dist/Cineseat_0.2.1-alpha120_MATURE_CGV_SEAMLESS.sha256
+      - name: Upload verified mature APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cineseat_0.2.1-alpha120_MATURE
+          path: |
+            source/dist/Cineseat_0.2.1-alpha120_MATURE_CGV_SEAMLESS.apk
+            source/dist/Cineseat_0.2.1-alpha120_MATURE_CGV_SEAMLESS.sha256
+            source/dist/INSTALL.txt
+          if-no-files-found: error
+          retention-days: 7
