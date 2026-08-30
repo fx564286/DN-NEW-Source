@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat > /tmp/probe.js <<'JS'
+          cat > probe.js <<'JS'
           const { chromium } = require('playwright');
           (async()=>{
             const browser=await chromium.launch({headless:true});
@@ -69,14 +69,12 @@ jobs:
             });
             const page=await context.newPage();
             page.on('request', req=>{
-              if(req.url().includes('selectSeatList.do')){
-                console.log('CAPTURE_REQUEST', req.method(), req.url(), req.postData());
-              }
+              if(req.url().includes('selectSeatList.do')) console.log('CAPTURE_REQUEST', req.method(), req.url(), req.postData());
             });
             page.on('response', async res=>{
               if(res.url().includes('selectSeatList.do')){
                 let body=''; try{body=await res.text();}catch(e){}
-                console.log('CAPTURE_RESPONSE', res.status(), body.slice(0,12000));
+                console.log('CAPTURE_RESPONSE', res.status(), body.slice(0,16000));
               }
             });
             const schedule=process.env.MB_SCHEDULE_ID;
@@ -102,10 +100,9 @@ jobs:
               try{
                 const r=await context.request.post(endpoint, opts);
                 const text=await r.text();
-                console.log('TRY',v.kind,JSON.stringify(v.data),'STATUS',r.status(),'BODY',text.slice(0,16000));
+                console.log('TRY',v.kind,JSON.stringify(v.data),'STATUS',r.status(),'BODY',text.slice(0,18000));
               }catch(e){console.log('TRY_ERROR',v.kind,JSON.stringify(v.data),String(e));}
             }
-            // Submit the seat page itself with likely booking context so its own JS can reveal the canonical request.
             try{
               await page.setContent(`<form id="f" method="post" action="https://www.megabox.co.kr/on/oh/ohz/PcntSeatChoi/selectPcntSeatChoi.do">
                 <input name="playSchdlNo" value="${schedule}">
@@ -117,10 +114,10 @@ jobs:
               </form><script>document.getElementById('f').submit()</script>`);
               await page.waitForTimeout(8000);
               console.log('seat page url', page.url());
-              console.log('seat page text', (await page.locator('body').innerText()).slice(0,5000));
-              console.log('seat page html markers', (await page.content()).match(/selectSeatList|playSchdlNo|seatListSD01/g)?.slice(0,50));
+              console.log('seat page text', (await page.locator('body').innerText()).slice(0,7000));
+              console.log('seat page html markers', (await page.content()).match(/selectSeatList|playSchdlNo|seatListSD01/g)?.slice(0,100));
             }catch(e){console.log('SEAT_PAGE_ERROR',String(e));}
             await browser.close();
           })().catch(e=>{console.error(e); process.exit(1)});
           JS
-          node /tmp/probe.js
+          node probe.js
