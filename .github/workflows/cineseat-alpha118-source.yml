@@ -1,4 +1,4 @@
-name: Build Cineseat Alpha118 APK
+name: Build Cineseat Alpha119 APK
 on:
   push:
     branches: [cineseat-alpha28-build]
@@ -31,11 +31,12 @@ jobs:
           rm -rf build_app/lib build_app/test
           mkdir -p build_app/lib
           cp alpha118_src/lib/*.dart build_app/lib/
+          python3 alpha118_src/apply_alpha119_megabox.py build_app
           cat > build_app/pubspec.yaml <<'YAML'
           name: cinema_seat_alert
-          description: Cineseat alpha118
+          description: Cineseat alpha119 CGV Megabox exact seats
           publish_to: none
-          version: 0.2.1-alpha.118+118
+          version: 0.2.1-alpha.119+119
           environment:
             sdk: '>=3.6.0 <4.0.0'
           dependencies:
@@ -61,15 +62,19 @@ jobs:
           s=s.replace(marker, marker+perms, 1)
           p.write_text(s)
           PY
+          grep -q 'CinemaChain.megabox when showtime.id.isNotEmpty' build_app/lib/services.dart
+          grep -q '메가박스 공식 selectSeatList · 실제 좌석 데이터' build_app/lib/services.dart
+          grep -q 'theater.chain == CinemaChain.megabox' build_app/lib/wizard.dart
+          grep -q 'CGV 공식 searchIfSeatData · 비회원 실제 좌석 데이터' build_app/lib/wizard.dart
       - name: Resolve and analyze
         working-directory: build_app
         run: |
           flutter pub get
           dart format lib
           flutter analyze --no-fatal-warnings --no-fatal-infos
-      - name: Build alpha118 APK
+      - name: Build alpha119 APK
         working-directory: build_app
-        run: flutter build apk --release --build-name 0.2.1-alpha.118 --build-number 118
+        run: flutter build apk --release --build-name 0.2.1-alpha.119 --build-number 119
       - name: Verify APK
         shell: bash
         run: |
@@ -81,12 +86,12 @@ jobs:
           BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "$BT/apksigner" verify --verbose --print-certs "$APK"
           mkdir -p dist
-          cp "$APK" dist/Cineseat_0.2.1-alpha118.apk
-          sha256sum dist/Cineseat_0.2.1-alpha118.apk | tee dist/Cineseat_0.2.1-alpha118.sha256
+          cp "$APK" dist/Cineseat_0.2.1-alpha119_CGV_MEGABOX_EXACT.apk
+          sha256sum dist/Cineseat_0.2.1-alpha119_CGV_MEGABOX_EXACT.apk | tee dist/Cineseat_0.2.1-alpha119_CGV_MEGABOX_EXACT.sha256
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Cineseat_0.2.1-alpha118
+          name: Cineseat_0.2.1-alpha119_CGV_MEGABOX_EXACT
           path: dist/*
           if-no-files-found: error
           retention-days: 7
